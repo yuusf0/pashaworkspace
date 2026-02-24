@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Tracker Önizleme</title>
+  <link rel="stylesheet" href="./src/styles.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header"><h1>Günlük Çalışma Süresi Takipçisi</h1></header>
+    <div class="layout-top">
+      <section class="card">
+        <h2>Bugün</h2>
+        <div class="summary-grid">
+          <div><p class="muted">Toplam Çalışma</p><p class="big">04:12:36</p></div>
+          <div><p class="muted">Seçilen Gün (2026-02-24)</p><p class="big">05:08:50</p></div>
+        </div>
+        <div class="progress-label"><span>Günlük hedef: 360 dk</span><span>%70</span></div>
+        <div class="progress-track"><div class="progress-fill" style="width:70%"></div></div>
+      </section>
+      <section class="card"><div class="row-between"><h2>Ayarlar</h2><button class="btn">🌙 Dark</button></div></section>
+    </div>
+    <section class="card">
+      <h2>Timer Kontrolü</h2>
+      <div class="timer-time">00:27:14</div>
+      <div class="form-grid">
+        <label>Proje<input value="Yeni Landing Page" /></label>
+        <label>Açıklama<input value="Header responsive düzenleme" /></label>
+        <label>Etiketler<input value="frontend, css" /></label>
+      </div>
+      <div class="actions"><button class="btn danger">Durdur</button></div>
+    </section>
+    <section class="card">
+      <h2>Haftalık Özet</h2>
+      <div class="bar-chart">
+        <div class="bar-col"><div class="bar" style="height:30%"></div><span>02-18</span></div>
+        <div class="bar-col"><div class="bar" style="height:65%"></div><span>02-19</span></div>
+        <div class="bar-col"><div class="bar" style="height:50%"></div><span>02-20</span></div>
+        <div class="bar-col"><div class="bar" style="height:90%"></div><span>02-21</span></div>
+        <div class="bar-col"><div class="bar" style="height:40%"></div><span>02-22</span></div>
+        <div class="bar-col"><div class="bar" style="height:75%"></div><span>02-23</span></div>
+        <div class="bar-col"><div class="bar" style="height:100%"></div><span>02-24</span></div>
+      </div>
+    </section>
+  </div>
+</body>
+</html>
