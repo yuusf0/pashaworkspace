@@ -1,0 +1,33 @@
+{
+  "name": "YemekLens - AI Beslenme Analizi",
+  "short_name": "YemekLens",
+  "description": "Yemek fotograflarinizi yukleyerek anlik beslenme icgoruleri, saglik puanlari ve yapay zeka tarafindan desteklenen tarif onerileri alin.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#16a34a",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "tr",
+  "icons": [
+    {
+      "src": "/icons/icon-512x512.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icons/icon-512x512.jpg",
+      "sizes": "144x144",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["food", "health", "lifestyle"]
+}

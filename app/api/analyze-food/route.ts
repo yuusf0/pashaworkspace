@@ -90,7 +90,7 @@ const foodAnalysisSchema = z.object({
       dailyValue: z.number().min(0).describe('Gunluk deger yuzdesi (0 veya ustu)'),
     })
   ).describe('Temel vitaminler ve mineraller'),
-  healthScore: z.number().min(0).max(10).describe('0-10 arasi saglik puani. Yemek degilse 0 ver.'),
+  healthScore: z.number().min(1).max(10).describe('1-10 arasi saglik puani. En dusuk deger 1 olmali.'),
   healthInsights: z.array(z.string()).describe('Saglik faydalari ve oneriler (Turkce)'),
   suggestedRecipes: z.array(
     z.object({
@@ -206,7 +206,7 @@ GOREVLER:
 
 2. BESLENME ANALIZI: Porsiyon basina tahmini kalori, makro besinler (protein, karbonhidrat, yag, lif) ve onemli vitaminler/mineraller. Internet arastirma sonuclarini referans alarak gercekci degerler ver.
 
-3. SAGLIK PUANI: Yemek taniyabiliyrsan 1-10 arasinda saglik puani ver. Yemek degilse 0 ver.
+3. SAGLIK PUANI: 1-10 arasinda saglik puani ver. En dusuk puan 1 olmali (ASLA 0 verme).
 
 4. DETAYLI TARIFLER: Bu yemegin EN AZ 3 farkli tarifini ver. Her tarif icin:
    - Tarif adi
@@ -215,7 +215,7 @@ GOREVLER:
    - Adim adim yapilis talimatlari
    - Hazirlama suresi
 
-ONEMLI: Eğer bu bir yemek fotografı değilse, "Yemek Bulunamadi" adı ver ve healthScore'u 0 set et.
+ONEMLI: Eğer bu bir yemek fotografı değilse, "Yemek Bulunamadi" adı ver ve healthScore'u 1 set et. Confidence'i 10 veya daha az ver.
 Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarindan elde edilen bilgileri kullanarak daha dogru sonuclar uret.`,
             },
             {
