@@ -1,10 +1,47 @@
-import { generateText, Output } from 'ai'
+import { generateText, Output, tool } from 'ai'
 import { createGroq } from '@ai-sdk/groq'
 import { z } from 'zod'
 
 const groq = createGroq({
   apiKey: process.env.GROQ_API_KEY,
 })
+
+// Web search function for nutritional research
+async function searchWeb(query: string): Promise<string> {
+  try {
+    // Use a nutrition-focused search
+    const searchQuery = encodeURIComponent(`${query} besin değeri kalori tarif`)
+    const response = await fetch(
+      `https://api.duckduckgo.com/?q=${searchQuery}&format=json&no_html=1&skip_disambig=1`
+    )
+    
+    if (!response.ok) {
+      return 'Arama sonucu bulunamadı.'
+    }
+    
+    const data = await response.json()
+    
+    let results = ''
+    
+    if (data.Abstract) {
+      results += `Özet: ${data.Abstract}\n`
+    }
+    
+    if (data.RelatedTopics && data.RelatedTopics.length > 0) {
+      results += 'İlgili Bilgiler:\n'
+      data.RelatedTopics.slice(0, 5).forEach((topic: { Text?: string }) => {
+        if (topic.Text) {
+          results += `- ${topic.Text}\n`
+        }
+      })
+    }
+    
+    return results || 'Arama sonucu bulunamadı.'
+  } catch (error) {
+    console.error('[v0] Web search error:', error)
+    return 'Web araması yapılamadı.'
+  }
+}
 
 const foodAnalysisSchema = z.object({
   foodName: z.string().describe('Tanimlanan yemegin adi (Turkce)'),
@@ -92,6 +129,33 @@ export async function POST(req: Request) {
       )
     }
 
+    // First, do a preliminary analysis to identify the food
+    const { text: foodIdentification } = await generateText({
+      model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
+      messages: [
+        {
+          role: 'user',
+          content: [
+            {
+              type: 'text',
+              text: 'Bu fotograftaki yemegi tanimla. Sadece yemegin adini yaz, baska bir sey yazma.',
+            },
+            {
+              type: 'image',
+              image: image,
+              mimeType: mediaType || 'image/jpeg',
+            },
+          ],
+        },
+      ],
+    })
+
+    console.log('[v0] Identified food:', foodIdentification)
+
+    // Search for additional nutritional information
+    const searchResults = await searchWeb(foodIdentification.trim())
+    console.log('[v0] Search results:', searchResults.substring(0, 200))
+
     const { output } = await generateText({
       model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
       output: Output.object({
@@ -105,10 +169,13 @@ export async function POST(req: Request) {
               type: 'text',
               text: `Sen bir profesyonel asci ve beslenme uzmanisin. Bu yemek fotografini dikkatlice analiz et.
 
+INTERNET ARASTIRMA SONUCLARI (Referans olarak kullan):
+${searchResults}
+
 GOREVLER:
 1. YEMEK TANIMLAMA: Fotograftaki yemegi dogru bir sekilde tanimla. Turk mutfagindan bir yemekse Turkce adini kullan.
 
-2. BESLENME ANALIZI: Porsiyon basina tahmini kalori, makro besinler (protein, karbonhidrat, yag, lif) ve onemli vitaminler/mineraller.
+2. BESLENME ANALIZI: Porsiyon basina tahmini kalori, makro besinler (protein, karbonhidrat, yag, lif) ve onemli vitaminler/mineraller. Internet arastirma sonuclarini referans alarak gercekci degerler ver.
 
 3. SAGLIK PUANI: 1-10 arasi saglik puani ver ve nedenlerini acikla.
 
@@ -119,12 +186,12 @@ GOREVLER:
    - Adim adim yapilis talimatlari
    - Hazirlama suresi
 
-Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver.`,
+Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarindan elde edilen bilgileri kullanarak daha dogru sonuclar uret.`,
             },
             {
               type: 'image',
               image: image,
-              mediaType: mediaType || 'image/jpeg',
+              mimeType: mediaType || 'image/jpeg',
             },
           ],
         },
