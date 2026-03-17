@@ -93,7 +93,7 @@ export async function POST(req: Request) {
     }
 
     const { output } = await generateText({
-      model: groq('llama-3.2-90b-vision-preview'),
+      model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
       output: Output.object({
         schema: foodAnalysisSchema,
       }),
