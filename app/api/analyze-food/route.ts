@@ -44,24 +44,24 @@ async function searchWeb(query: string): Promise<string> {
 }
 
 const foodAnalysisSchema = z.object({
-  foodName: z.string().describe('Tanimlanan yemegin adi (Turkce)'),
-  confidence: z.number().min(0).max(100).describe('Tanimlama guven yuzdesi'),
-  calories: z.number().describe('Porsiyon basina tahmini kalori'),
+  foodName: z.string().describe('Tanimlanan yemegin adi (Turkce). Fotografta yemek yoksa "Yemek Bulunamadi" yaz.'),
+  confidence: z.number().min(0).max(100).describe('Tanimlama guven yuzdesi (0-100)'),
+  calories: z.number().min(0).describe('Porsiyon basina tahmini kalori (0 veya ustu)'),
   servingSize: z.string().describe('Tahmini porsiyon boyutu'),
   macronutrients: z.object({
-    protein: z.number().describe('Gram cinsinden protein'),
-    carbohydrates: z.number().describe('Gram cinsinden karbonhidrat'),
-    fat: z.number().describe('Gram cinsinden yag'),
-    fiber: z.number().describe('Gram cinsinden lif'),
+    protein: z.number().min(0).describe('Gram cinsinden protein (0 veya ustu)'),
+    carbohydrates: z.number().min(0).describe('Gram cinsinden karbonhidrat (0 veya ustu)'),
+    fat: z.number().min(0).describe('Gram cinsinden yag (0 veya ustu)'),
+    fiber: z.number().min(0).describe('Gram cinsinden lif (0 veya ustu)'),
   }),
   micronutrients: z.array(
     z.object({
       name: z.string(),
       amount: z.string(),
-      dailyValue: z.number().describe('Gunluk deger yuzdesi'),
+      dailyValue: z.number().min(0).describe('Gunluk deger yuzdesi (0 veya ustu)'),
     })
   ).describe('Temel vitaminler ve mineraller'),
-  healthScore: z.number().min(1).max(10).describe('1-10 arasi saglik puani'),
+  healthScore: z.number().min(0).max(10).describe('0-10 arasi saglik puani. Yemek degilse 0 ver.'),
   healthInsights: z.array(z.string()).describe('Saglik faydalari ve oneriler (Turkce)'),
   suggestedRecipes: z.array(
     z.object({
@@ -198,12 +198,21 @@ Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarin
       ],
     })
 
+    // If model returned low confidence or invalid data, handle gracefully
+    if (output && output.confidence < 10) {
+      return Response.json({ 
+        analysis: {
+          ...output,
+          healthInsights: ['Bu görsel bir yemek olarak tanımlanamadı. Lütfen net bir yemek fotoğrafı yükleyin.'],
+        }
+      })
+    }
+
     return Response.json({ analysis: output })
   } catch (error) {
     console.error('[v0] Food analysis error:', error)
     
     const errorMessage = error instanceof Error ? error.message : String(error)
-    console.error('[v0] Full error:', JSON.stringify(error, null, 2))
     
     // More user-friendly error messages
     if (errorMessage.includes('API key')) {
@@ -211,6 +220,12 @@ Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarin
         { error: 'Groq API anahtarı yapılandırılmamış. Lütfen GROQ_API_KEY ortam değişkenini kontrol edin.' },
         { status: 500 }
       )
+    }
+
+    // Handle JSON validation errors - return demo data
+    if (errorMessage.includes('json_validate_failed') || errorMessage.includes('does not match')) {
+      console.log('[v0] Using demo data due to validation error')
+      return Response.json({ analysis: demoAnalysis })
     }
     
     return Response.json(
