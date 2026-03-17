@@ -10,22 +10,25 @@ export const metadata: Metadata = {
   title: 'YemekLens - Yapay Zeka Tarafından Desteklenen Beslenme Analizi',
   description: 'Yemek fotoğraflarını yükleyerek anlık beslenme içgörüleri, sağlık puanları ve yapay zeka tarafından desteklenen tarif önerileri alın.',
   generator: 'v0.app',
+  manifest: '/manifest.json',
+  themeColor: '#16a34a',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'YemekLens',
+  },
+  formatDetection: {
+    telephone: false,
+  },
   icons: {
     icon: [
       {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
+        url: '/icons/icon-512x512.jpg',
+        sizes: '512x512',
+        type: 'image/jpeg',
       },
     ],
-    apple: '/apple-icon.png',
+    apple: '/icons/icon-512x512.jpg',
   },
 }
 
@@ -36,9 +39,30 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="tr">
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="YemekLens" />
+      </head>
       <body className="font-sans antialiased">
         {children}
         <Analytics />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                    console.log('ServiceWorker registration successful');
+                  }, function(err) {
+                    console.log('ServiceWorker registration failed: ', err);
+                  });
+                });
+              }
+            `,
+          }}
+        />
       </body>
     </html>
   )
