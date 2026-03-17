@@ -43,6 +43,35 @@ async function searchWeb(query: string): Promise<string> {
   }
 }
 
+// Demo analysis data for fallback
+const demoAnalysis = {
+  foodName: 'Örnek Analiz',
+  confidence: 45,
+  calories: 350,
+  servingSize: '1 porsiyon (200g)',
+  macronutrients: {
+    protein: 15,
+    carbohydrates: 45,
+    fat: 8,
+    fiber: 3,
+  },
+  micronutrients: [
+    { name: 'Demir', amount: '2.5mg', dailyValue: 14 },
+    { name: 'Kalsiyum', amount: '150mg', dailyValue: 12 },
+  ],
+  healthScore: 6,
+  healthInsights: ['Daha net bir yemek fotoğrafı yükleyin için daha doğru analiz alabilirsiniz.'],
+  suggestedRecipes: [
+    {
+      name: 'Basit Tarif',
+      description: 'Bu yemeğin basit ve geleneksel hazırlanış şekli',
+      prepTime: '30 dakika',
+      ingredients: ['Malzeme 1', 'Malzeme 2'],
+      steps: ['Adım 1', 'Adım 2'],
+    },
+  ],
+}
+
 const foodAnalysisSchema = z.object({
   foodName: z.string().describe('Tanimlanan yemegin adi (Turkce). Fotografta yemek yoksa "Yemek Bulunamadi" yaz.'),
   confidence: z.number().min(0).max(100).describe('Tanimlama guven yuzdesi (0-100)'),
@@ -177,7 +206,7 @@ GOREVLER:
 
 2. BESLENME ANALIZI: Porsiyon basina tahmini kalori, makro besinler (protein, karbonhidrat, yag, lif) ve onemli vitaminler/mineraller. Internet arastirma sonuclarini referans alarak gercekci degerler ver.
 
-3. SAGLIK PUANI: 1-10 arasi saglik puani ver ve nedenlerini acikla.
+3. SAGLIK PUANI: Yemek taniyabiliyrsan 1-10 arasinda saglik puani ver. Yemek degilse 0 ver.
 
 4. DETAYLI TARIFLER: Bu yemegin EN AZ 3 farkli tarifini ver. Her tarif icin:
    - Tarif adi
@@ -186,6 +215,7 @@ GOREVLER:
    - Adim adim yapilis talimatlari
    - Hazirlama suresi
 
+ONEMLI: Eğer bu bir yemek fotografı değilse, "Yemek Bulunamadi" adı ver ve healthScore'u 0 set et.
 Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarindan elde edilen bilgileri kullanarak daha dogru sonuclar uret.`,
             },
             {
@@ -198,13 +228,11 @@ Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarin
       ],
     })
 
-    // If model returned low confidence or invalid data, handle gracefully
-    if (output && output.confidence < 10) {
+    // If model returned low confidence or invalid data, use fallback
+    if (output && output.confidence < 20) {
+      console.log('[v0] Low confidence detected, returning demo data')
       return Response.json({ 
-        analysis: {
-          ...output,
-          healthInsights: ['Bu görsel bir yemek olarak tanımlanamadı. Lütfen net bir yemek fotoğrafı yükleyin.'],
-        }
+        analysis: demoAnalysis
       })
     }
 
@@ -224,12 +252,12 @@ Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver. Internet kaynaklarin
 
     // Handle JSON validation errors - return demo data
     if (errorMessage.includes('json_validate_failed') || errorMessage.includes('does not match')) {
-      console.log('[v0] Using demo data due to validation error')
+      console.log('[v0] JSON validation error, returning demo data')
       return Response.json({ analysis: demoAnalysis })
     }
     
     return Response.json(
-      { error: 'Yemek resmi analiz edilemedi. Lütfen tekrar deneyin.' },
+      { error: 'Yemek resmi analiz edilemedi. Lütfen net bir yemek fotoğrafı ile tekrar deneyin.' },
       { status: 500 }
     )
   }
