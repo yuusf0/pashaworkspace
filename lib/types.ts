@@ -20,5 +20,7 @@ export interface FoodAnalysis {
     name: string
     description: string
     prepTime: string
+    ingredients?: string[]
+    steps?: string[]
   }>
 }

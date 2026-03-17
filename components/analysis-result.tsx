@@ -146,21 +146,53 @@ export function AnalysisResult({ analysis }: AnalysisResultProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-lg">
               <Utensils className="w-5 h-5 text-primary" />
-              Tarif Fikirleri
+              Detayli Tarifler
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
+            <div className="space-y-6">
               {analysis.suggestedRecipes.map((recipe, i) => (
-                <div key={i} className="p-4 rounded-lg border bg-card hover:bg-muted/50 transition-colors">
-                  <div className="flex items-start justify-between">
-                    <h4 className="font-medium">{recipe.name}</h4>
+                <div key={i} className="p-4 rounded-lg border bg-card">
+                  <div className="flex items-start justify-between mb-3">
+                    <h4 className="font-semibold text-lg">{recipe.name}</h4>
                     <Badge variant="secondary" className="flex items-center gap-1">
                       <Clock className="w-3 h-3" />
                       {recipe.prepTime}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-1">{recipe.description}</p>
+                  <p className="text-sm text-muted-foreground mb-4">{recipe.description}</p>
+                  
+                  {/* Malzemeler */}
+                  {recipe.ingredients && recipe.ingredients.length > 0 && (
+                    <div className="mb-4">
+                      <h5 className="font-medium text-sm mb-2 text-primary">Malzemeler:</h5>
+                      <ul className="grid grid-cols-2 gap-1">
+                        {recipe.ingredients.map((ingredient, j) => (
+                          <li key={j} className="text-sm text-muted-foreground flex items-start gap-1">
+                            <span className="text-primary">•</span>
+                            {ingredient}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                  
+                  {/* Yapilis Adimlari */}
+                  {recipe.steps && recipe.steps.length > 0 && (
+                    <div>
+                      <h5 className="font-medium text-sm mb-2 text-primary">Yapilis:</h5>
+                      <ol className="space-y-2">
+                        {recipe.steps.map((step, j) => (
+                          <li key={j} className="text-sm text-muted-foreground flex items-start gap-2">
+                            <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-medium">
+                              {j + 1}
+                            </span>
+                            <span>{step}</span>
+                          </li>
+                        ))}
+                      </ol>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -7,32 +7,34 @@ const groq = createGroq({
 })
 
 const foodAnalysisSchema = z.object({
-  foodName: z.string().describe('The name of the identified food'),
-  confidence: z.number().min(0).max(100).describe('Confidence percentage of the identification'),
-  calories: z.number().describe('Estimated calories per serving'),
-  servingSize: z.string().describe('The estimated serving size'),
+  foodName: z.string().describe('Tanimlanan yemegin adi (Turkce)'),
+  confidence: z.number().min(0).max(100).describe('Tanimlama guven yuzdesi'),
+  calories: z.number().describe('Porsiyon basina tahmini kalori'),
+  servingSize: z.string().describe('Tahmini porsiyon boyutu'),
   macronutrients: z.object({
-    protein: z.number().describe('Protein in grams'),
-    carbohydrates: z.number().describe('Carbohydrates in grams'),
-    fat: z.number().describe('Fat in grams'),
-    fiber: z.number().describe('Fiber in grams'),
+    protein: z.number().describe('Gram cinsinden protein'),
+    carbohydrates: z.number().describe('Gram cinsinden karbonhidrat'),
+    fat: z.number().describe('Gram cinsinden yag'),
+    fiber: z.number().describe('Gram cinsinden lif'),
   }),
   micronutrients: z.array(
     z.object({
       name: z.string(),
       amount: z.string(),
-      dailyValue: z.number().describe('Percentage of daily value'),
+      dailyValue: z.number().describe('Gunluk deger yuzdesi'),
     })
-  ).describe('Key vitamins and minerals'),
-  healthScore: z.number().min(1).max(10).describe('Health score from 1-10'),
-  healthInsights: z.array(z.string()).describe('Health benefits and considerations'),
+  ).describe('Temel vitaminler ve mineraller'),
+  healthScore: z.number().min(1).max(10).describe('1-10 arasi saglik puani'),
+  healthInsights: z.array(z.string()).describe('Saglik faydalari ve oneriler (Turkce)'),
   suggestedRecipes: z.array(
     z.object({
-      name: z.string(),
-      description: z.string(),
-      prepTime: z.string(),
+      name: z.string().describe('Tarif adi (Turkce)'),
+      description: z.string().describe('Detayli tarif aciklamasi - malzemeler ve yapilis (Turkce)'),
+      prepTime: z.string().describe('Hazirlama suresi'),
+      ingredients: z.array(z.string()).describe('Malzeme listesi'),
+      steps: z.array(z.string()).describe('Yapilis adimlari'),
     })
-  ).describe('Recipe suggestions using this food'),
+  ).describe('Bu yemek icin detayli tarifler'),
 })
 
 // Demo data for when AI Gateway is not available
@@ -91,7 +93,7 @@ export async function POST(req: Request) {
     }
 
     const { output } = await generateText({
-      model: groq('meta-llama/llama-4-scout-17b-16e-instruct'),
+      model: groq('llama-3.2-90b-vision-preview'),
       output: Output.object({
         schema: foodAnalysisSchema,
       }),
@@ -101,10 +103,23 @@ export async function POST(req: Request) {
           content: [
             {
               type: 'text',
-              text: `Bu yemek resmine analiz et ve detaylı beslenme bilgileri sağla. 
-              Yemeği tanımla, sunuş başına beslenme içeriğini tahmin et, sağlık önerileri ver, 
-              ve bazı tarif önerileri sun. Doğru ol ama tanımlama belirsizse bunu açıkla.
-              Eğer bu bir yemek resmi değilse, gördüğüne dayanarak en iyi tahmini yap.`,
+              text: `Sen bir profesyonel asci ve beslenme uzmanisin. Bu yemek fotografini dikkatlice analiz et.
+
+GOREVLER:
+1. YEMEK TANIMLAMA: Fotograftaki yemegi dogru bir sekilde tanimla. Turk mutfagindan bir yemekse Turkce adini kullan.
+
+2. BESLENME ANALIZI: Porsiyon basina tahmini kalori, makro besinler (protein, karbonhidrat, yag, lif) ve onemli vitaminler/mineraller.
+
+3. SAGLIK PUANI: 1-10 arasi saglik puani ver ve nedenlerini acikla.
+
+4. DETAYLI TARIFLER: Bu yemegin EN AZ 3 farkli tarifini ver. Her tarif icin:
+   - Tarif adi
+   - Detayli aciklama
+   - Tam malzeme listesi (olculeriyle birlikte)
+   - Adim adim yapilis talimatlari
+   - Hazirlama suresi
+
+Tum yanitlar TURKCE olmali. Gercekci ve dogru bilgiler ver.`,
             },
             {
               type: 'image',
